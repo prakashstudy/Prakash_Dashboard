@@ -190,44 +190,40 @@ def area_coordinates():
     return {
         'Kunikera': {'lat': 15.2832, 'lon': 76.2142},
         'Ojanahalli': {'lat': 15.3856, 'lon': 76.1472},
-        'Hirehalli': {'lat': 15.4200, 'lon': 76.1200},
-        'Ginigera': {'lat': 15.3482, 'lon': 76.2473},
-        'Kanakagiri': {'lat': 15.5862, 'lon': 76.4170},
-        'Tavarekoppa': {'lat': 15.3090, 'lon': 76.1550},
-        'Hire Sindogi': {'lat': 15.2964, 'lon': 76.0922},
-        'Kalavathi': {'lat': 15.3370, 'lon': 76.2080},
-        'Mahalingpur': {'lat': 16.3888, 'lon': 75.1087},
-        'Naveenakere': {'lat': 15.3620, 'lon': 76.1410},
-        'Ginigere': {'lat': 15.3482, 'lon': 76.2473},
-        'Karatagi': {'lat': 15.6106, 'lon': 76.6599},
-        'Karatgi': {'lat': 15.6106, 'lon': 76.6599},
-        'Gangavathi Town': {'lat': 15.4313, 'lon': 76.5293},
-        'Hirehal': {'lat': 15.6937, 'lon': 75.7326},
-        'Harlapur': {'lat': 15.3461, 'lon': 76.3710},
-        'Hirevankalkunta': {'lat': 15.5972, 'lon': 76.1931},
-        'Hunnur': {'lat': 16.5100, 'lon': 75.2700},
-        'Kustagi': {'lat': 15.7566, 'lon': 76.1927},
-        'Kustagi Town': {'lat': 15.7566, 'lon': 76.1927},
-        'Maski': {'lat': 15.9582, 'lon': 76.6545},
-        'Yelbarga': {'lat': 15.6142, 'lon': 76.0131},
-        'Tavargera': {'lat': 15.7300, 'lon': 76.5400},
-        'Tavaragera': {'lat': 15.7300, 'lon': 76.5400},
-        'Hanumanal': {'lat': 15.7400, 'lon': 76.2100},
-        'Kukanur': {'lat': 15.4912, 'lon': 75.9942},
-        'Hirehosur': {'lat': 15.5610, 'lon': 76.0520},
-        'Malasamudra': {'lat': 15.3830, 'lon': 75.5910},
-        'Mamadapura': {'lat': 15.7700, 'lon': 76.1600},
-        'Mundaragi': {'lat': 15.2070, 'lon': 75.8840},
-        'Yelburga Town': {'lat': 15.6142, 'lon': 76.0131},
-        'Hirebenchi': {'lat': 15.6500, 'lon': 75.8500},
-        'Hoolageri': {'lat': 15.5970, 'lon': 75.9220},
-        'Kempanahalli': {'lat': 15.6700, 'lon': 75.8700},
-        'Komalapur': {'lat': 15.5860, 'lon': 76.0120},
-        'Navalagi': {'lat': 15.6400, 'lon': 75.9300},
-        'Ramasagara': {'lat': 15.6100, 'lon': 75.8600},
-        'Sangapur': {'lat': 15.4021, 'lon': 76.5467},
-        'Vajjal': {'lat': 15.6300, 'lon': 75.8800},
-        'Yaragera': {'lat': 15.8920, 'lon': 76.0339}
+        'Bannikoppa': {'lat': 15.3877, 'lon': 75.9420},
+        'Tadkal': {'lat': 15.3507, 'lon': 76.1554},
+        'Hulegudda': {'lat': 15.6235, 'lon': 76.1146},
+        'Konasagar': {'lat': 15.6916, 'lon': 76.1030},
+        'Kawalbodur': {'lat': 15.8267, 'lon': 76.1744},
+        'Balutagi': {'lat': 15.8627, 'lon': 76.2653},
+        'HireGonnagar': {'lat': 15.8096, 'lon': 75.9535},
+        'Anegundi': {'lat': 15.3507, 'lon': 76.4925},
+        'Kilarhatti': {'lat': 15.8107, 'lon': 76.3994},
+        'Challur': {'lat': 15.6000, 'lon': 76.5833},
+        'Marlanahalli': {'lat': 15.5740, 'lon': 76.6499},
+        'Gouripur': {'lat': 15.6188, 'lon': 76.3550},
+        'Hatti': {'lat': 15.2117, 'lon': 75.9350},
+        'Komlapur': {'lat': 15.350708, 'lon': 76.155434},
+        'Chikwankal Kunta': {'lat': 15.5828, 'lon': 76.1852},
+        'Hire Wankal Kunta': {'lat': 15.5972, 'lon': 76.1931},
+        'Talkere': {'lat': 15.5471, 'lon': 76.1555},
+        'Ningalbandi': {'lat': 15.6881, 'lon': 76.2235},
+        'Badimnhal': {'lat': 15.7197, 'lon': 76.1432},
+        'Venkatapur': {'lat': 15.8239, 'lon': 76.2081},
+        'Garjanhal': {'lat': 15.7062, 'lon': 76.0681},
+        'Teggihal': {'lat': 15.6836, 'lon': 76.0441},
+        'Mallapur': {'lat': 15.7481, 'lon': 76.2361},
+        'Rampur': {'lat': 15.3934, 'lon': 76.1415},
+        'Hagedal': {'lat': 15.6562, 'lon': 76.0315},
+        'Basrihal': {'lat': 15.6031, 'lon': 75.9521},
+        'Chikka Madinal': {'lat': 15.6621, 'lon': 75.9876},
+        'Wadganhal': {'lat': 15.6214, 'lon': 75.9562},
+        'Hirebommanahal': {'lat': 15.6421, 'lon': 76.0214},
+        'Hiresulikeri': {'lat': 15.6791, 'lon': 76.1721},
+        'Jinnapur': {'lat': 15.5342, 'lon': 75.9731},
+        'Belgatti': {'lat': 15.4851, 'lon': 75.8921},
+        'Kawaloor': {'lat': 15.3512, 'lon': 75.9921},
+        'Kesor': {'lat': 15.4021, 'lon': 76.5467}
     }
 
 def create_map(df):
@@ -345,7 +341,7 @@ app.layout = dbc.Container([
         dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="moderate-count"), html.P("Moderate")], className="summary-card kpi-moderate text-center")), width=True),
         dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="severe-count"), html.P("Severe")], className="summary-card kpi-severe text-center")), width=True),
         dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="prevalence-val"), html.P("Prevalence (%)")], className="summary-card kpi-prevalence text-center")), width=True),
-        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="avg-hgb"), html.P("Avg Hb")], className="summary-card kpi-hgb text-center")), width=True),
+        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="avg-hgb"), html.P("Avg Hb (g/dL)")], className="summary-card kpi-hgb text-center")), width=True),
     ], className="mb-4 g-2 justify-content-center"),
 
     # Main Row (Map + Side Charts)
@@ -626,7 +622,7 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)"
     )
 
-    return (total, normal_kpi, moderate_kpi, severe_kpi, mild_kpi, avg_hgb, prevalence_str, status_text, status_class, map_fig, benif_bar, anemia_pie, anemia_area_bar, df_table.to_dict("records"), [{"name": c, "id": c} for c in available_cols], area_opts, psu_opts, benif_opts, psu)
+    return (total, normal_kpi, moderate_kpi, severe_kpi, mild_kpi, avg_hgb, prevalence_str, status_text, status_class, map_fig, benif_bar, anemia_pie, anemia_area_bar, df_table.to_dict("records"), [{"name": "HGB (g/dL)" if c == "HGB" else c, "id": c} for c in available_cols], area_opts, psu_opts, benif_opts, psu)
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8050)
