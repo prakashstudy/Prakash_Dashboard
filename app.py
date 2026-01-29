@@ -84,6 +84,163 @@ def parse_age(age_val):
     res = round(years + (months / 12), 2)
     return res if 0 < res < 150 else None
 
+def classify_anemia_who(hgb, age, gender, beneficiary):
+    """
+    Classify anemia based on WHO guidelines.
+    
+    Parameters:
+    - hgb: Hemoglobin level in g/dL
+    - age: Age in years (REQUIRED)
+    - gender: Gender (Male/Female)
+    - beneficiary: Beneficiary category
+    
+    Returns: 'normal', 'mild', 'moderate', 'severe', or 'incomplete' if data is insufficient
+    """
+    # Handle missing values - BOTH HGB AND AGE ARE REQUIRED
+    if pd.isna(hgb) or hgb is None:
+        return "incomplete"
+    
+    if pd.isna(age) or age is None:
+        return "incomplete"
+    
+    # Convert to float
+    try:
+        hgb = float(hgb)
+        age = float(age)
+    except:
+        return "incomplete"
+    
+    # Normalize inputs
+    gender_str = str(gender).lower().strip() if not pd.isna(gender) else ""
+    beneficiary_str = str(beneficiary).lower().strip() if not pd.isna(beneficiary) else ""
+    
+    # Determine classification based on beneficiary type and age
+    
+    # Pregnant Women
+    if "pregnant" in beneficiary_str:
+        if hgb >= 11.0:
+            return "normal"
+        elif hgb >= 10.0:
+            return "mild"
+        elif hgb >= 7.0:
+            return "moderate"
+        else:
+            return "severe"
+    
+    # Children 5-9 Months (6-59 months WHO category)
+    elif "5-9 months" in beneficiary_str or "children 5-9 months" in beneficiary_str:
+        if hgb >= 11.0:
+            return "normal"
+        elif hgb >= 10.0:
+            return "mild"
+        elif hgb >= 7.0:
+            return "moderate"
+        else:
+            return "severe"
+    
+    # Children Aged 5-9 Years (60 Months)
+    elif "5-9 years" in beneficiary_str or "60 months" in beneficiary_str:
+        if hgb >= 11.5:
+            return "normal"
+        elif hgb >= 11.0:
+            return "mild"
+        elif hgb >= 8.0:
+            return "moderate"
+        else:
+            return "severe"
+    
+    # Adolescent Girls 10-19 Years
+    elif "adolescent girls" in beneficiary_str or ("adolescent" in beneficiary_str and "female" in gender_str):
+        if hgb >= 12.0:
+            return "normal"
+        elif hgb >= 11.0:
+            return "mild"
+        elif hgb >= 8.0:
+            return "moderate"
+        else:
+            return "severe"
+    
+    # Adolescent Boys 10-19 Years
+    elif "adolescent boys" in beneficiary_str or ("adolescent" in beneficiary_str and "male" in gender_str):
+        if hgb >= 12.0:
+            return "normal"
+        elif hgb >= 11.0:
+            return "mild"
+        elif hgb >= 8.0:
+            return "moderate"
+        else:
+            return "severe"
+    
+    # Women Of Reproductive Age (non-pregnant)
+    elif "women of reproductive age" in beneficiary_str or "reproductive age" in beneficiary_str:
+        if hgb >= 12.0:
+            return "normal"
+        elif hgb >= 11.0:
+            return "mild"
+        elif hgb >= 8.0:
+            return "moderate"
+        else:
+            return "severe"
+    
+    # Fallback: Use age and gender if beneficiary type doesn't match
+    else:
+        # Children under 5 years
+        if age < 5:
+            if hgb >= 11.0:
+                return "normal"
+            elif hgb >= 10.0:
+                return "mild"
+            elif hgb >= 7.0:
+                return "moderate"
+            else:
+                return "severe"
+        
+        # Children 5-11 years
+        elif age < 12:
+            if hgb >= 11.5:
+                return "normal"
+            elif hgb >= 11.0:
+                return "mild"
+            elif hgb >= 8.0:
+                return "moderate"
+            else:
+                return "severe"
+        
+        # Adolescents and Adults (12+ years)
+        else:
+            # Female thresholds
+            if "female" in gender_str or "f" == gender_str:
+                if hgb >= 12.0:
+                    return "normal"
+                elif hgb >= 11.0:
+                    return "mild"
+                elif hgb >= 8.0:
+                    return "moderate"
+                else:
+                    return "severe"
+            # Male thresholds
+            elif "male" in gender_str or "m" == gender_str:
+                if hgb >= 13.0:
+                    return "normal"
+                elif hgb >= 11.0:
+                    return "mild"
+                elif hgb >= 8.0:
+                    return "moderate"
+                else:
+                    return "severe"
+            # Unknown gender - use female thresholds (more conservative)
+            else:
+                if hgb >= 12.0:
+                    return "normal"
+                elif hgb >= 11.0:
+                    return "mild"
+                elif hgb >= 8.0:
+                    return "moderate"
+                else:
+                    return "severe"
+
+
+
 def load_data():
     """
     Fetches data from Google Apps Script. 
@@ -173,6 +330,20 @@ def load_data():
         if "Name" in df.columns:
             df["Name"] = df["Name"].astype(str).str.title()
 
+        # Apply WHO-based automatic anemia classification
+        if "HGB" in df.columns:
+            df["anemia_category"] = df.apply(
+                lambda row: classify_anemia_who(
+                    row.get("HGB"),
+                    row.get("Age"),
+                    row.get("Gender"),
+                    row.get("Benificiery")
+                ),
+                axis=1
+            )
+        else:
+            df["anemia_category"] = None
+
         return df, "Live", False
         
     except requests.exceptions.ConnectionError:
@@ -184,7 +355,7 @@ def load_data():
 
 psu_list = []
 area_list = []
-anemia_list = ["normal", "mild", "moderate", "severe"]
+anemia_list = ["normal", "mild", "moderate", "severe", "incomplete"]
 
 def area_coordinates():
     return {
@@ -223,7 +394,13 @@ def area_coordinates():
         'Jinnapur': {'lat': 15.5342, 'lon': 75.9731},
         'Belgatti': {'lat': 15.4851, 'lon': 75.8921},
         'Kawaloor': {'lat': 15.3512, 'lon': 75.9921},
-        'Kesor': {'lat': 15.4021, 'lon': 76.5467}
+        'Kesor': {'lat': 15.4021, 'lon': 76.5467},
+        'Gangawati (CMC+OG) WARD No- 0005': {'lat': 15.4350, 'lon': 76.5330},
+        'Gangawati (CMC+OG) WARD No- 0009': {'lat': 15.4280, 'lon': 76.5250},
+        'Gangawati (CMC+OG) WARD No- 0015': {'lat': 15.4330, 'lon': 76.5350},
+        'Koppal (CMC) WARD No-0008': {'lat': 15.3530, 'lon': 76.1580},
+        'Koppal (CMC) WARD No-0021': {'lat': 15.3480, 'lon': 76.1520},
+        'Koppal (CMC) WARD No-0001': {'lat': 15.3550, 'lon': 76.1500}
     }
 
 def create_map(df):
@@ -316,8 +493,7 @@ app.layout = dbc.Container([
     html.Div([
         html.H2("Prakash-Koppal District Study Dashboard", className="text-center mt-4 mb-2 dashboard-title"),
         html.Div([
-            html.Span("Real-time Health Surveillance | Koppal, Karnataka | ", className="text-muted"),
-            html.Span(id="connection-status", className="badge rounded-pill bg-light text-dark")
+            html.Span("Real-time Health Surveillance | Koppal, Karnataka", className="text-muted")
         ], className="text-center mb-4"),
     ]),
 
@@ -385,6 +561,7 @@ app.layout = dbc.Container([
                 {'if': {'filter_query': '{anemia_category} = "Mild"'}, 'backgroundColor': '#fef9c3', 'color': '#854d0e'},
                 {'if': {'filter_query': '{anemia_category} = "Moderate"'}, 'backgroundColor': '#fee2e2', 'color': '#991b1b'},
                 {'if': {'filter_query': '{anemia_category} = "Severe"'}, 'backgroundColor': '#fecaca', 'color': '#7f1d1d'},
+                {'if': {'filter_query': '{anemia_category} = "Incomplete"'}, 'backgroundColor': '#f3f4f6', 'color': '#64748b'},
             ]
         ), type="default")
     ], className="mb-5")
@@ -406,7 +583,6 @@ def refresh_data(_):
         Output("moderate-count", "children"), Output("severe-count", "children"),
         Output("mild-count", "children"), Output("avg-hgb", "children"),
         Output("prevalence-val", "children"),
-        Output("connection-status", "children"), Output("connection-status", "className"),
         Output("map", "figure"), Output("benificiery-bar", "figure"),
         Output("anemia-pie", "figure"), Output("anemia-area-bar", "figure"),
         Output("table", "data"), Output("table", "columns"),
@@ -423,18 +599,15 @@ def refresh_data(_):
 )
 def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, clickData):
     if not stored_dict or "records" not in stored_dict:
-        return [0]*7 + ["Disconnected", "badge bg-danger rounded-pill"] + [go.Figure()]*4 + [[], [], [], [], [], None]
+        return [0]*7 + [go.Figure()]*4 + [[], [], [], [], [], None]
     
     records = stored_dict["records"]
     status_msg = stored_dict["status"]
     is_error = stored_dict["is_error"]
     last_upd = stored_dict.get("last_updated", "")
-    
-    status_text = f"Data Status: {status_msg} (Last checked: {last_upd})"
-    status_class = "badge rounded-pill bg-danger" if is_error else "badge rounded-pill bg-success"
 
     if not records and is_error:
-        return [0]*7 + [status_text, status_class] + [go.Figure()]*4 + [[], [], [], [], [], None]
+        return [0]*7 + [go.Figure()]*4 + [[], [], [], [], [], None]
 
     df_full = pd.DataFrame(records)
     
@@ -448,8 +621,8 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
             if village_clicked in df_full["PSU Name"].values:
                 psu = [village_clicked]
 
-    is_full_update = triggered_id in ["psu-dropdown", "area-dropdown", "benificiery-dropdown", "anemia-dropdown", "map"] or \
-                     triggered_id is None or (triggered_id == "stored-data" and n_intervals == 0)
+    driver_triggers = ["stored-data", "interval"]
+    is_full_update = triggered_id not in driver_triggers or (triggered_id == "stored-data" and n_intervals == 0)
 
     # Dynamic Options (Cascading Filters)
     # 1. PSU options: Filtered by Area, Benificiery, Anemia
@@ -507,7 +680,7 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
     moderate_kpi = get_kpi_str(moderate, total)
     severe_kpi = get_kpi_str(severe, total)
 
-    color_map = {"normal": "#27ae60", "mild": "#f1c40f", "moderate": "#e67e22", "severe": "#c0392b"}
+    color_map = {"normal": "#27ae60", "mild": "#f1c40f", "moderate": "#e67e22", "severe": "#c0392b", "incomplete": "#95a5a6"}
 
     table_order = [
         "SL.NO", "ID", "enrollment_date", "Area COde", "PSU Name",
@@ -527,7 +700,7 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
             df_table[col] = df_table[col].astype(str).str.title()
 
     if not is_full_update:
-        return (total, normal_kpi, moderate_kpi, severe_kpi, mild_kpi, avg_hgb, prevalence_str, status_text, status_class, no_update, no_update, no_update, no_update, no_update, no_update, area_opts, psu_opts, benif_opts, psu)
+        return (total, normal_kpi, moderate_kpi, severe_kpi, mild_kpi, avg_hgb, prevalence_str, no_update, no_update, no_update, no_update, no_update, no_update, area_opts, psu_opts, benif_opts, psu)
 
     map_fig = create_map(df)
     
@@ -562,7 +735,7 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
         opacity=0.8
     )])
     benif_bar.update_layout(
-        title=dict(text="Subject Group Breakdown", font=dict(size=14, color="#64748b", family="Inter"), x=0.5, y=0.92),
+        title=dict(text="Benificiery Breakdown", font=dict(size=14, color="#64748b", family="Inter"), x=0.5, y=0.92),
         margin=dict(t=60, b=120, l=40, r=20),
         xaxis=dict(tickangle=-45, automargin=True, title=None, showgrid=False),
         yaxis=dict(title=None, automargin=True, showgrid=True, gridcolor="#f1f5f9"),
@@ -599,7 +772,7 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
             hover_info[(str(area), cat)] = v_str
 
     anemia_area_bar = go.Figure()
-    for cat in ["normal", "mild", "moderate", "severe"]:
+    for cat in ["normal", "mild", "moderate", "severe", "incomplete"]:
         if cat in area_anemia:
             custom_hover = [hover_info.get((str(area), cat), "No data") for area in area_anemia.index]
             
@@ -622,7 +795,7 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)"
     )
 
-    return (total, normal_kpi, moderate_kpi, severe_kpi, mild_kpi, avg_hgb, prevalence_str, status_text, status_class, map_fig, benif_bar, anemia_pie, anemia_area_bar, df_table.to_dict("records"), [{"name": "HGB (g/dL)" if c == "HGB" else c, "id": c} for c in available_cols], area_opts, psu_opts, benif_opts, psu)
+    return (total, normal_kpi, moderate_kpi, severe_kpi, mild_kpi, avg_hgb, prevalence_str, map_fig, benif_bar, anemia_pie, anemia_area_bar, df_table.to_dict("records"), [{"name": "HGB (g/dL)" if c == "HGB" else c, "id": c} for c in available_cols], area_opts, psu_opts, benif_opts, psu)
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8050)
