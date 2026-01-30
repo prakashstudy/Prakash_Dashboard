@@ -610,7 +610,7 @@ def refresh_data(_):
         Output("anemia-pie", "figure"), Output("anemia-area-bar", "figure"),
         Output("table", "data"), Output("table", "columns"),
         Output("area-dropdown", "options"), Output("psu-dropdown", "options"),
-        Output("benificiery-dropdown", "options"),
+        Output("benificiery-dropdown", "options"), Output("anemia-dropdown", "options"),
         Output("psu-dropdown", "value"),
     ],
     [
@@ -622,7 +622,7 @@ def refresh_data(_):
 )
 def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, clickData):
     if not stored_dict or "records" not in stored_dict:
-        return [0]*7 + [go.Figure()]*4 + [[], [], [], [], [], None]
+        return [0]*7 + [go.Figure()]*4 + [[], [], [], [], [], [], None]
     
     records = stored_dict["records"]
     status_msg = stored_dict["status"]
@@ -630,7 +630,7 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
     last_upd = stored_dict.get("last_updated", "")
 
     if not records and is_error:
-        return [0]*7 + [go.Figure()]*4 + [[], [], [], [], [], None]
+        return [0]*7 + [go.Figure()]*4 + [[], [], [], [], [], [], None]
 
     df_full = pd.DataFrame(records)
     
@@ -645,7 +645,8 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
                 psu = [village_clicked]
 
     driver_triggers = ["stored-data", "interval"]
-    is_full_update = triggered_id not in driver_triggers or (triggered_id == "stored-data" and n_intervals == 0)
+    # We will always update the dashboard components to ensure they stay in sync with filters
+    is_full_update = True 
 
     # Dynamic Options (Cascading Filters)
     # 1. PSU options: Filtered by Area, Benificiery, Anemia
@@ -674,12 +675,23 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
     if anemia: df_benif = df_benif[df_benif["anemia_category"].isin(anemia)]
     benif_opts = [{"label": x, "value": x} for x in sorted(df_benif["Benificiery"].dropna().unique())]
 
+    # 4. Anemia options: Filtered by Area, PSU, Benificiery (Logic added for dynamic cascading)
+    df_anemia_opts = df_full.copy()
+    if area: df_anemia_opts = df_anemia_opts[df_anemia_opts["Area COde"].astype(str).isin(area)]
+    if psu: df_anemia_opts = df_anemia_opts[df_anemia_opts["PSU Name"].isin(psu)]
+    if benificiery: df_anemia_opts = df_anemia_opts[df_anemia_opts["Benificiery"].isin(benificiery)]
+    # Normalize anemia categories to capitalize for label
+    anemia_opts_raw = sorted(df_anemia_opts["anemia_category"].dropna().unique())
+    anemia_opts = [{"label": x.capitalize(), "value": x} for x in anemia_opts_raw]
+
     # Apply all final filters to the main df for stats/charts
     df = df_full.copy()
     if psu: df = df[df["PSU Name"].isin(psu)]
     if area: df = df[df["Area COde"].astype(str).isin(area)]
     if benificiery: df = df[df["Benificiery"].isin(benificiery)]
-    if anemia: df = df[df["anemia_category"].isin(anemia)]
+    if anemia: 
+        # Ensure case-insensitive matching for anemia category
+        df = df[df["anemia_category"].str.lower().isin([x.lower() for x in anemia])]
 
     total = len(df)
     normal = (df["anemia_category"] == "normal").sum()
@@ -722,8 +734,7 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
         if df_table[col].dtype == 'object':
             df_table[col] = df_table[col].astype(str).str.title()
 
-    if not is_full_update:
-        return (total, normal_kpi, moderate_kpi, severe_kpi, mild_kpi, avg_hgb, prevalence_str, no_update, no_update, no_update, no_update, no_update, no_update, area_opts, psu_opts, benif_opts, psu)
+    # Removed is_full_update check to ensure dashboard always reflects current filter state
 
     map_fig = create_map(df)
     
@@ -818,7 +829,7 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)"
     )
 
-    return (total, normal_kpi, moderate_kpi, severe_kpi, mild_kpi, avg_hgb, prevalence_str, map_fig, benif_bar, anemia_pie, anemia_area_bar, df_table.to_dict("records"), [{"name": "HGB (g/dL)" if c == "HGB" else c, "id": c} for c in available_cols], area_opts, psu_opts, benif_opts, psu)
+    return (total, normal_kpi, moderate_kpi, severe_kpi, mild_kpi, avg_hgb, prevalence_str, map_fig, benif_bar, anemia_pie, anemia_area_bar, df_table.to_dict("records"), [{"name": "HGB (g/dL)" if c == "HGB" else c, "id": c} for c in available_cols], area_opts, psu_opts, benif_opts, anemia_opts, psu)
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8050)
