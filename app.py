@@ -89,32 +89,37 @@ def classify_anemia_who(hgb, age, gender, beneficiary):
     Classify anemia based on WHO guidelines.
     
     Parameters:
-    - hgb: Hemoglobin level in g/dL
-    - age: Age in years (REQUIRED)
+    - hgb: Hemoglobin level in g/dL (REQUIRED)
+    - age: Age in years (Optional if beneficiary type is specific)
     - gender: Gender (Male/Female)
     - beneficiary: Beneficiary category
     
     Returns: 'normal', 'mild', 'moderate', 'severe', or 'incomplete' if data is insufficient
     """
-    # Handle missing values - BOTH HGB AND AGE ARE REQUIRED
+    # Handle missing HGB - REQUIRED
     if pd.isna(hgb) or hgb is None:
         return "incomplete"
     
-    if pd.isna(age) or age is None:
-        return "incomplete"
-    
-    # Convert to float
+    # Convert HGB to float
     try:
         hgb = float(hgb)
-        age = float(age)
     except:
         return "incomplete"
+
+    # Handle Age (Optional, but convert if present)
+    try:
+        if age is not None and not pd.isna(age) and str(age).strip() != "":
+            age = float(age)
+        else:
+            age = None
+    except:
+        age = None
     
     # Normalize inputs
     gender_str = str(gender).lower().strip() if not pd.isna(gender) else ""
     beneficiary_str = str(beneficiary).lower().strip() if not pd.isna(beneficiary) else ""
     
-    # Determine classification based on beneficiary type and age
+    # Determine classification based on beneficiary type OR age
     
     # Pregnant Women
     if "pregnant" in beneficiary_str:
@@ -183,7 +188,7 @@ def classify_anemia_who(hgb, age, gender, beneficiary):
             return "severe"
     
     # Fallback: Use age and gender if beneficiary type doesn't match
-    else:
+    elif age is not None:
         # Children under 5 years
         if age < 5:
             if hgb >= 11.0:
@@ -238,6 +243,9 @@ def classify_anemia_who(hgb, age, gender, beneficiary):
                     return "moderate"
                 else:
                     return "severe"
+
+    # If we can't determine (missing/unclear beneficiary AND missing age), return incomplete
+    return "incomplete"
 
 
 
@@ -343,6 +351,21 @@ def load_data():
             )
         else:
             df["anemia_category"] = None
+
+        # FILTER: Keep rows where either Age OR Beneficiary is present
+        # Check for valid Age (not None/NaN)
+        has_age = df["Age"].notna()
+        
+        # Check for valid Beneficiary (not None/NaN/empty/"Nan")
+        # Since we converted to string title case earlier, check against "Nan" and "None" strings
+        has_beneficiary = (
+            df["Benificiery"].notna() & 
+            (df["Benificiery"] != "") & 
+            (df["Benificiery"].str.lower() != "nan") & 
+            (df["Benificiery"].str.lower() != "none")
+        )
+        
+        df = df[has_age | has_beneficiary]
 
         return df, "Live", False
         
@@ -511,13 +534,13 @@ app.layout = dbc.Container([
 
     # KPI Row (Single Row Distribution)
     dbc.Row([
-        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="total"), html.P("Enrolled")], className="summary-card kpi-total text-center")), width=True),
-        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="normal-count"), html.P("Normal")], className="summary-card kpi-normal text-center")), width=True),
-        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="mild-count"), html.P("Mild")], className="summary-card kpi-mild text-center")), width=True),
-        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="moderate-count"), html.P("Moderate")], className="summary-card kpi-moderate text-center")), width=True),
-        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="severe-count"), html.P("Severe")], className="summary-card kpi-severe text-center")), width=True),
-        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="prevalence-val"), html.P("Prevalence (%)")], className="summary-card kpi-prevalence text-center")), width=True),
-        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="avg-hgb"), html.P("Avg Hb (g/dL)")], className="summary-card kpi-hgb text-center")), width=True),
+        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="total"), html.P("Enrolled")], className="summary-card kpi-total text-center")), xs=6, sm=4, md=True),
+        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="normal-count"), html.P("Normal")], className="summary-card kpi-normal text-center")), xs=6, sm=4, md=True),
+        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="mild-count"), html.P("Mild")], className="summary-card kpi-mild text-center")), xs=6, sm=4, md=True),
+        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="moderate-count"), html.P("Moderate")], className="summary-card kpi-moderate text-center")), xs=6, sm=4, md=True),
+        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="severe-count"), html.P("Severe")], className="summary-card kpi-severe text-center")), xs=6, sm=4, md=True),
+        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="prevalence-val"), html.P("Prevalence (%)")], className="summary-card kpi-prevalence text-center")), xs=6, sm=4, md=True),
+        dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="avg-hgb"), html.P("Avg Hb (g/dL)")], className="summary-card kpi-hgb text-center")), xs=6, sm=4, md=True),
     ], className="mb-4 g-2 justify-content-center"),
 
     # Main Row (Map + Side Charts)
@@ -525,18 +548,18 @@ app.layout = dbc.Container([
         dbc.Col([
             dbc.Card(dbc.CardBody([
                 html.H5("Spatial Distribution - Case Status", className="mb-3 text-muted text-center", style={"fontSize": "14px", "fontWeight": "600"}),
-                dcc.Loading(dcc.Graph(id="map", config={"responsive": True}, style={"height": "580px"}), type="default"), 
-            ], className="p-2"), className="glass-card", style={"height": "650px"}),
+                dcc.Loading(dcc.Graph(id="map", config={"responsive": True}, className="map-graph"), type="default"), 
+            ], className="p-2"), className="glass-card map-card"),
         ], xs=12, md=8),
         
         dbc.Col([
             dbc.Card(dbc.CardBody([
                 dcc.Loading(dcc.Graph(id="anemia-pie", config={"responsive": True}), type="default"),
-            ], className="p-2"), className="mb-3 glass-card", style={"height": "315px"}),
+            ], className="p-2"), className="mb-3 glass-card side-chart-card"),
             
             dbc.Card(dbc.CardBody([
                 dcc.Loading(dcc.Graph(id="benificiery-bar", config={"responsive": True}), type="default"), 
-            ], className="p-2"), className="glass-card", style={"height": "315px"}),
+            ], className="p-2"), className="glass-card side-chart-card"),
         ], xs=12, md=4),
     ], className="mb-4 g-3"),
 
@@ -545,7 +568,7 @@ app.layout = dbc.Container([
         dbc.Col([
             dbc.Card(dbc.CardBody([
                 dcc.Loading(dcc.Graph(id="anemia-area-bar", config={"responsive": True}), type="default"),
-            ], className="p-3"), className="glass-card", style={"height": "450px"}),
+            ], className="p-3"), className="glass-card bottom-chart-card"),
         ], width=12),
     ], className="mb-4 g-3"),
 
@@ -788,10 +811,10 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
     anemia_area_bar.update_layout(
         barmode="stack", 
         title=dict(text="Anemia Status Comparison by Area Code", font=dict(size=16, color="#1e293b", family="Inter"), x=0.01),
-        margin=dict(t=60, b=60, l=40, r=20),
+        margin=dict(t=60, b=100, l=40, r=20),
         xaxis=dict(title="Area Code", automargin=True, showgrid=False),
         yaxis=dict(title="Count", automargin=True, showgrid=True, gridcolor="#f1f5f9"),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        legend=dict(orientation="h", yanchor="top", y=-0.2, xanchor="center", x=0.5),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)"
     )
 
