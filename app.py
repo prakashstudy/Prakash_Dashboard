@@ -134,11 +134,11 @@ def classify_anemia_who(hgb, age, gender, beneficiary):
     
     # Children 5-9 Months (6-59 months WHO category)
     elif "5-9 months" in beneficiary_str or "children 5-9 months" in beneficiary_str:
-        if hgb >= 11.5:
+        if hgb >= 11.0:
             return "normal"
-        elif hgb >= 11.0:
+        elif hgb >= 10.0:
             return "mild"
-        elif hgb >= 8.0:
+        elif hgb >= 7.0:
             return "moderate"
         else:
             return "severe"
@@ -532,7 +532,7 @@ app.layout = dbc.Container([
         ], className="p-3")
     ], className="mb-4 glass-card"),
 
-    # KPI Row (Single Row Distribution)
+    # KPI Row (Responsive Grid)
     dbc.Row([
         dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="total"), html.P("Enrolled")], className="summary-card kpi-total text-center")), xs=6, sm=4, md=True),
         dbc.Col(dbc.Card(dbc.CardBody([html.H4(id="normal-count"), html.P("Normal")], className="summary-card kpi-normal text-center")), xs=6, sm=4, md=True),
@@ -548,18 +548,18 @@ app.layout = dbc.Container([
         dbc.Col([
             dbc.Card(dbc.CardBody([
                 html.H5("Spatial Distribution - Case Status", className="mb-3 text-muted text-center", style={"fontSize": "14px", "fontWeight": "600"}),
-                dcc.Loading(dcc.Graph(id="map", config={"responsive": True}, className="map-graph"), type="default"), 
-            ], className="p-2"), className="glass-card map-card"),
+                dcc.Loading(dcc.Graph(id="map", config={"responsive": True}, style={"height": "580px", "minHeight": "400px"}), type="default"), 
+            ], className="p-2"), className="glass-card", style={"minHeight": "650px"}),
         ], xs=12, md=8),
         
         dbc.Col([
             dbc.Card(dbc.CardBody([
                 dcc.Loading(dcc.Graph(id="anemia-pie", config={"responsive": True}), type="default"),
-            ], className="p-2"), className="mb-3 glass-card side-chart-card"),
+            ], className="p-2"), className="mb-3 glass-card", style={"height": "315px"}),
             
             dbc.Card(dbc.CardBody([
                 dcc.Loading(dcc.Graph(id="benificiery-bar", config={"responsive": True}), type="default"), 
-            ], className="p-2"), className="glass-card side-chart-card"),
+            ], className="p-2"), className="glass-card", style={"height": "315px"}),
         ], xs=12, md=4),
     ], className="mb-4 g-3"),
 
@@ -568,7 +568,7 @@ app.layout = dbc.Container([
         dbc.Col([
             dbc.Card(dbc.CardBody([
                 dcc.Loading(dcc.Graph(id="anemia-area-bar", config={"responsive": True}), type="default"),
-            ], className="p-3"), className="glass-card bottom-chart-card"),
+            ], className="p-3"), className="glass-card", style={"height": "450px"}),
         ], width=12),
     ], className="mb-4 g-3"),
 
@@ -588,7 +588,7 @@ app.layout = dbc.Container([
             ]
         ), type="default")
     ], className="mb-5")
-], fluid=True, className="px-4")
+], fluid=True, className="px-2 px-md-4")
 
 @app.callback(Output("stored-data", "data"), Input("interval", "n_intervals"))
 def refresh_data(_):
@@ -811,10 +811,10 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
     anemia_area_bar.update_layout(
         barmode="stack", 
         title=dict(text="Anemia Status Comparison by Area Code", font=dict(size=16, color="#1e293b", family="Inter"), x=0.01),
-        margin=dict(t=60, b=100, l=40, r=20),
+        margin=dict(t=60, b=60, l=40, r=20),
         xaxis=dict(title="Area Code", automargin=True, showgrid=False),
         yaxis=dict(title="Count", automargin=True, showgrid=True, gridcolor="#f1f5f9"),
-        legend=dict(orientation="h", yanchor="top", y=-0.2, xanchor="center", x=0.5),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)"
     )
 
