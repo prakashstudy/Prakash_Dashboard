@@ -22,7 +22,7 @@ DATA_SOURCE_URL = "https://script.google.com/macros/s/AKfycbxfqwdEiWRaSUpfSQoE5V
 
 BENEFICIARY_MAP = {
     2: "Pregnant Women",
-    3: "Children 5-9 Months",
+    3: "Children 5-59 Months",
     4: "Children Aged 5-9 Years  (60 Months)",
     5: "Adolescent Girls 10-19 Years",
     6: "Adolescent Boys 10-19 Years",
@@ -132,8 +132,8 @@ def classify_anemia_who(hgb, age, gender, beneficiary):
         else:
             return "severe"
     
-    # Children 5-9 Months (6-59 months WHO category)
-    elif "5-9 months" in beneficiary_str or "children 5-9 months" in beneficiary_str:
+    # Children 5-59 Months (6-59 months WHO category)
+    elif "5-59 months" in beneficiary_str or "children 5-59 months" in beneficiary_str:
         if hgb >= 11.0:
             return "normal"
         elif hgb >= 10.0:
@@ -833,3 +833,4 @@ def update_dashboard(stored_dict, psu, area, benificiery, anemia, n_intervals, c
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8050)
+
